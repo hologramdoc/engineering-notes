@@ -1,0 +1,76 @@
+baseURL = "https://hologramdoc.github.io/engineering-notes/"
+languageCode = "ko-KR"
+title = "Engineering Notes"
+theme = "PaperMod"
+paginate = 10
+enableRobotsTXT = true
+buildDrafts = false
+
+[params]
+  env = "production"
+  title = "Engineering Notes"
+  description = "AI 추론 엔진 · 광학설계 · MLOps · 제조 AI 시스템 엔지니어링 실무 노트"
+  author = "ho93"
+  defaultTheme = "auto"
+  disableThemeToggle = false
+  ShowReadingTime = true
+  ShowShareButtons = false
+  ShowPostNavLinks = true
+  ShowBreadCrumbs = true
+  ShowCodeCopyButtons = true
+  ShowWordCount = false
+  ShowRssButtonInSectionTermList = true
+  UseHugoToc = true
+  disableSpecial1stPost = false
+  disableScrollToTop = false
+  comments = false
+  hidemeta = false
+  hideSummary = false
+  showtoc = true
+  tocopen = false
+
+  [params.homeInfoParams]
+    Title = "Engineering Notes"
+    Content = """
+AI 추론 엔진 최적화, 제조 MLOps, LCD 광학설계까지 —
+실제 현장에서 쌓은 엔지니어링 경험을 기록합니다.
+
+**전문 영역:** TensorRT · ONNX · Edge AI · Prometheus · LCD 광학 · Mura/Demura
+"""
+
+  [[params.socialIcons]]
+    name = "github"
+    url = "https://github.com/hologramdoc"
+
+  [[params.socialIcons]]
+    name = "email"
+    url = "mailto:hyunho7992@gmail.com"
+
+[menu]
+  [[menu.main]]
+    identifier = "posts"
+    name = "Posts"
+    url = "/posts/"
+    weight = 10
+  [[menu.main]]
+    identifier = "about"
+    name = "About"
+    url = "/about/"
+    weight = 20
+  [[menu.main]]
+    identifier = "tags"
+    name = "Tags"
+    url = "/tags/"
+    weight = 30
+
+[taxonomies]
+  tag = "tags"
+  category = "categories"
+
+[markup.highlight]
+  noClasses = false
+  anchorLineNos = true
+  codeFences = true
+  guessSyntax = true
+  lineNos = true
+  style = "monokai"
