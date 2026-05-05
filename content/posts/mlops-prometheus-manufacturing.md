@@ -6,6 +6,10 @@ categories: ["MLOps & 운영"]
 description: "자동차 생산 라인 AI 추론 시스템의 운영 모니터링 체계 전체. 관측가능성(Observability) 이론, SLA/SLO 설계, Prometheus 메트릭 구현, 장애 대응 RCA까지."
 showToc: true
 tocopen: true
+cover:
+  image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1260&h=630&fit=crop&auto=format"
+  alt: "모니터링 대시보드 — MLOps Prometheus"
+  relative: false
 ---
 
 ## 제조 MLOps는 왜 다른가

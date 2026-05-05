@@ -6,6 +6,10 @@ categories: ["LCD 광학설계"]
 description: "LCD Mura의 물리적 발생 원인, 계측 이론, Demura 알고리즘 구현, 폐루프 보정 시스템 설계까지. LCD 광학설계 엔지니어 실무 노트."
 showToc: true
 tocopen: true
+cover:
+  image: "https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=1260&h=630&fit=crop&auto=format"
+  alt: "LCD 디스플레이 패널 — Mura 광학 분석"
+  relative: false
 ---
 
 ## 광학설계 엔지니어의 핵심 철학

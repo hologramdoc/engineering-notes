@@ -19,7 +19,7 @@ buildDrafts = false
   ShowPostNavLinks = true
   ShowBreadCrumbs = true
   ShowCodeCopyButtons = true
-  ShowWordCount = false
+  ShowWordCount = true
   ShowRssButtonInSectionTermList = true
   UseHugoToc = true
   disableSpecial1stPost = false
@@ -30,13 +30,20 @@ buildDrafts = false
   showtoc = true
   tocopen = false
 
+  [params.cover]
+    hidden = false
+    hiddenInList = false
+    hiddenInSingle = false
+    linkFullImages = true
+
   [params.homeInfoParams]
     Title = "Engineering Notes"
     Content = """
-AI 추론 엔진 최적화, 제조 MLOps, LCD 광학설계까지 —
+AI 추론 엔진 최적화 · 제조 MLOps · LCD 광학설계
+
 실제 현장에서 쌓은 엔지니어링 경험을 기록합니다.
 
-**전문 영역:** TensorRT · ONNX · Edge AI · Prometheus · LCD 광학 · Mura/Demura
+**기술 스택:** TensorRT · ONNX · YOLOv8 · Prometheus · Jetson · Mura/Demura
 """
 
   [[params.socialIcons]]
