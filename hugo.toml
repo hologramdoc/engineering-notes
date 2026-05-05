@@ -1,6 +1,6 @@
 baseURL = "https://hologramdoc.github.io/engineering-notes/"
 languageCode = "ko-KR"
-title = "Engineering Notes"
+title = "Vision AI Lab"
 theme = "PaperMod"
 [pagination]
   pagerSize = 10
@@ -9,8 +9,8 @@ buildDrafts = false
 
 [params]
   env = "production"
-  title = "Engineering Notes"
-  description = "AI 추론 엔진 · 광학설계 · MLOps · 제조 AI 시스템 엔지니어링 실무 노트"
+  title = "Vision AI Lab"
+  description = "제조 AI 추론 엔진 · Edge 배포 · MLOps · LCD 광학설계 — 현장 엔지니어링 실무 노트"
   author = "ho93"
   defaultTheme = "auto"
   disableThemeToggle = false
@@ -37,13 +37,14 @@ buildDrafts = false
     linkFullImages = true
 
   [params.homeInfoParams]
-    Title = "Engineering Notes"
+    Title = "Vision AI Lab"
     Content = """
-AI 추론 엔진 최적화 · 제조 MLOps · LCD 광학설계
+제조 현장 AI 시스템 엔지니어링 실무 노트.
 
-실제 현장에서 쌓은 엔지니어링 경험을 기록합니다.
+TensorRT 추론 최적화부터 Edge 배포, MLOps 운영, LCD 광학설계까지 —
+라인이 멈추지 않도록 시스템을 설계하고 운영한 경험을 기록합니다.
 
-**기술 스택:** TensorRT · ONNX · YOLOv8 · Prometheus · Jetson · Mura/Demura
+`TensorRT` `ONNX` `YOLOv8` `Prometheus` `Jetson AGX Orin` `Mura/Demura`
 """
 
   [[params.socialIcons]]
