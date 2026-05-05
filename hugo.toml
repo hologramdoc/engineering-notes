@@ -1,11 +1,18 @@
 baseURL = "https://hologramdoc.github.io/engineering-notes/"
-languageCode = "ko-KR"
 title = "Vision AI Lab"
 theme = "hugo-theme-stack"
 enableRobotsTXT = true
 buildDrafts = false
 hasCJKLanguage = true
 defaultContentLanguage = "ko"
+
+[languages]
+  [languages.ko]
+    languageCode = "ko-KR"
+    languageName = "한국어"
+    locale       = "ko-KR"
+    title        = "Vision AI Lab"
+    weight       = 1
 
 [pagination]
   pagerSize = 10
