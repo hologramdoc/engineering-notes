@@ -1,59 +1,80 @@
 baseURL = "https://hologramdoc.github.io/engineering-notes/"
 languageCode = "ko-KR"
 title = "Vision AI Lab"
-theme = "PaperMod"
-[pagination]
-  pagerSize = 10
+theme = "hugo-theme-stack"
 enableRobotsTXT = true
 buildDrafts = false
+hasCJKLanguage = true
+defaultContentLanguage = "ko"
+
+[pagination]
+  pagerSize = 10
 
 [params]
-  env = "production"
-  title = "Vision AI Lab"
-  description = "제조 AI 추론 엔진 · Edge 배포 · MLOps · LCD 광학설계 — 현장 엔지니어링 실무 노트"
-  author = "ho93"
-  defaultTheme = "auto"
-  disableThemeToggle = false
-  ShowReadingTime = true
-  ShowShareButtons = false
-  ShowPostNavLinks = true
-  ShowBreadCrumbs = true
-  ShowCodeCopyButtons = true
-  ShowWordCount = true
-  ShowRssButtonInSectionTermList = true
-  UseHugoToc = true
-  disableSpecial1stPost = false
-  disableScrollToTop = false
-  comments = false
-  hidemeta = false
-  hideSummary = false
-  showtoc = true
-  tocopen = false
+  mainSections = ["posts"]
+  rssFullContent = true
 
-  [params.cover]
-    hidden = false
-    hiddenInList = false
-    hiddenInSingle = false
-    linkFullImages = true
+  [params.sidebar]
+    compact = false
+    avatar   = "https://avatars.githubusercontent.com/hologramdoc"
+    subtitle = "제조 AI · Edge · MLOps"
 
-  [params.homeInfoParams]
-    Title = "Vision AI Lab"
-    Content = """
-제조 현장 AI 시스템 엔지니어링 실무 노트.
+  [params.article]
+    toc = true
+    readingTime = true
+    headingAnchor = true
 
-TensorRT 추론 최적화부터 Edge 배포, MLOps 운영, LCD 광학설계까지 —
-라인이 멈추지 않도록 시스템을 설계하고 운영한 경험을 기록합니다.
+    [params.article.list]
+      showTags = true
 
-`TensorRT` `ONNX` `YOLOv8` `Prometheus` `Jetson AGX Orin` `Mura/Demura`
-"""
+    [params.article.license]
+      enabled = false
 
-  [[params.socialIcons]]
-    name = "github"
-    url = "https://github.com/hologramdoc"
+  [params.footer]
+    since = 2025
+    customText = "Vision AI Lab — 현장 엔지니어링 실무 노트"
 
-  [[params.socialIcons]]
-    name = "email"
-    url = "mailto:hyunho7992@gmail.com"
+  [params.dateFormat]
+    published = "2006-01-02"
+    lastUpdated = "2006-01-02"
+
+  [params.colorScheme]
+    toggle = true
+    default = "auto"
+
+  [params.comments]
+    enabled = false
+
+  [params.widgets]
+    homepage = ["search", "archives", "tag-cloud"]
+    page = ["toc"]
+
+  [params.imageProcessing]
+    autoOrient = false
+
+    [params.imageProcessing.external]
+      timeout = "5s"
+
+    [params.imageProcessing.content]
+      enabled = true
+      widths = [800, 1600]
+
+    [params.imageProcessing.thumbnail]
+      enabled = true
+
+[markup.highlight]
+  noClasses = false
+  codeFences = true
+  guessSyntax = true
+  lineNos = true
+  style = "monokai"
+
+[markup.goldmark.renderer]
+  unsafe = true
+
+[taxonomies]
+  tag = "tags"
+  category = "categories"
 
 [menu]
   [[menu.main]]
@@ -61,25 +82,53 @@ TensorRT 추론 최적화부터 Edge 배포, MLOps 운영, LCD 광학설계까�
     name = "Posts"
     url = "/posts/"
     weight = 10
-  [[menu.main]]
-    identifier = "about"
-    name = "About"
-    url = "/about/"
-    weight = 20
+    [menu.main.params]
+      icon = "archives"
+
   [[menu.main]]
     identifier = "tags"
     name = "Tags"
     url = "/tags/"
+    weight = 20
+    [menu.main.params]
+      icon = "tag"
+
+  [[menu.main]]
+    identifier = "categories"
+    name = "Categories"
+    url = "/categories/"
     weight = 30
+    [menu.main.params]
+      icon = "category"
 
-[taxonomies]
-  tag = "tags"
-  category = "categories"
+  [[menu.main]]
+    identifier = "archives"
+    name = "Archives"
+    url = "/archives/"
+    weight = 40
+    [menu.main.params]
+      icon = "date"
 
-[markup.highlight]
-  noClasses = false
-  anchorLineNos = true
-  codeFences = true
-  guessSyntax = true
-  lineNos = true
-  style = "monokai"
+  [[menu.main]]
+    identifier = "about"
+    name = "About"
+    url = "/about/"
+    weight = 50
+    [menu.main.params]
+      icon = "user"
+
+  [[menu.social]]
+    identifier = "github"
+    name = "GitHub"
+    url = "https://github.com/hologramdoc"
+    weight = 1
+    [menu.social.params]
+      icon = "brand-github"
+
+  [[menu.social]]
+    identifier = "email"
+    name = "Email"
+    url = "mailto:hyunho7992@gmail.com"
+    weight = 2
+    [menu.social.params]
+      icon = "mail"

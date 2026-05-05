@@ -4,12 +4,9 @@ date: 2026-05-01
 tags: ["면접", "기술면접", "TensorRT", "MLOps", "비전검사", "제조AI", "Edge AI"]
 categories: ["커리어 & 면접"]
 description: "비전 검사 AI 추론 엔진 엔지니어 면접 실전 대비. 화이트보드 시스템 설계 3종 + 핵심 기술 Q&A 30선 + 최적화 치트시트."
+image: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1260&h=630&fit=crop&auto=format"
 showToc: true
 tocopen: true
-cover:
-  image: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1260&h=630&fit=crop&auto=format"
-  alt: "기술 면접 준비 — 제조 AI 엔지니어"
-  relative: false
 ---
 
 ## 면접 전 체크리스트

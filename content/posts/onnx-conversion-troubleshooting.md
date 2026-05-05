@@ -4,12 +4,9 @@ date: 2026-04-15
 tags: ["ONNX", "TensorRT", "PyTorch", "모델변환", "추론최적화", "그래프최적화"]
 categories: ["AI 추론 엔진"]
 description: "ONNX 그래프 구조 이론부터 PyTorch 변환, 그래프 최적화, TensorRT 배포까지. 현장에서 자주 만나는 오류 TOP 5와 해결법 포함."
+image: "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=1260&h=630&fit=crop&auto=format"
 showToc: true
 tocopen: true
-cover:
-  image: "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=1260&h=630&fit=crop&auto=format"
-  alt: "Python 코드 — ONNX 모델 변환"
-  relative: false
 ---
 
 ## ONNX란 무엇인가

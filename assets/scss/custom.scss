@@ -1,0 +1,246 @@
+// ══════════════════════════════════════════════
+// Vision AI Lab — LG Brand Design System
+// Primary: #A50034  Accent: #E60055  Black: #1A1A1A
+// ══════════════════════════════════════════════
+
+:root {
+  --lg-red:      #A50034;
+  --lg-red-dark: #7A0026;
+  --lg-accent:   #E60055;
+  --lg-black:    #1A1A1A;
+}
+
+// ── 사이드바 ─────────────────────────────────
+.sidebar {
+  background: linear-gradient(180deg, #1A1A1A 0%, #2D0015 60%, #A50034 100%) !important;
+
+  .site-name {
+    color: #fff !important;
+    font-weight: 900 !important;
+    letter-spacing: -.03em;
+  }
+
+  .site-description {
+    color: rgba(255,255,255,.7) !important;
+  }
+
+  // 사이드바 아바타 테두리
+  .site-avatar img {
+    border: 3px solid var(--lg-accent) !important;
+    box-shadow: 0 0 20px rgba(165,0,52,.4);
+  }
+
+  // 메뉴 아이템
+  .menu-item {
+    a {
+      color: rgba(255,255,255,.8) !important;
+      &:hover {
+        color: #fff !important;
+        background: rgba(165,0,52,.3) !important;
+      }
+    }
+    &.current a {
+      color: #fff !important;
+      background: rgba(165,0,52,.5) !important;
+    }
+  }
+
+  // 소셜 아이콘
+  .social-menu-list a {
+    color: rgba(255,255,255,.7) !important;
+    &:hover { color: var(--lg-accent) !important; }
+  }
+}
+
+// ── 포스트 카드 ───────────────────────────────
+.article-list--compact article,
+.article-list--tile article {
+  border-radius: 12px !important;
+  border: 1px solid #E5E7EB;
+  transition: transform .2s, box-shadow .2s, border-color .2s;
+  overflow: hidden;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(165,0,52,.15);
+    border-color: var(--lg-red) !important;
+  }
+}
+
+// 포스트 커버 이미지
+.article-image img {
+  transition: transform .4s ease;
+}
+.article-list--compact article:hover .article-image img,
+.article-list--tile article:hover .article-image img {
+  transform: scale(1.05);
+}
+
+// ── 포스트 제목 ──────────────────────────────
+.article-title {
+  font-weight: 700 !important;
+
+  a:hover { color: var(--lg-red) !important; }
+}
+
+// 단일 포스트 제목
+.article-header h1.article-title {
+  font-size: 2rem;
+  font-weight: 900 !important;
+  letter-spacing: -.03em;
+
+  &::before {
+    content: '';
+    display: block;
+    width: 48px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--lg-red), var(--lg-accent));
+    border-radius: 2px;
+    margin-bottom: .8rem;
+  }
+}
+
+// ── 태그 ─────────────────────────────────────
+.article-tags a,
+.widget--tag-cloud a {
+  background: #FFF1F3 !important;
+  border: 1px solid #FECDD3 !important;
+  border-radius: 999px !important;
+  color: var(--lg-red) !important;
+  padding: 3px 12px !important;
+  font-size: .78rem !important;
+  font-weight: 600 !important;
+  transition: all .15s;
+
+  &:hover {
+    background: var(--lg-red) !important;
+    color: #fff !important;
+    border-color: var(--lg-red) !important;
+  }
+}
+
+// ── 목차 ─────────────────────────────────────
+.widget--toc {
+  background: #FFF1F3;
+  border: 1px solid #FECDD3;
+  border-left: 4px solid var(--lg-red);
+  border-radius: 12px;
+
+  a { color: #4B1C2C; }
+  a:hover { color: var(--lg-red); }
+
+  .active-class { color: var(--lg-red) !important; }
+}
+
+// ── 코드블록 ─────────────────────────────────
+.highlight {
+  border-radius: 10px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+  border: 1px solid #E5E7EB;
+  font-size: .84rem;
+}
+
+code:not(pre code) {
+  background: #FFF1F3 !important;
+  color: var(--lg-red) !important;
+  border-radius: 5px !important;
+  padding: 2px 6px !important;
+  font-size: .87em !important;
+}
+
+// ── 표 ───────────────────────────────────────
+.article-content table {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+  width: 100%;
+
+  th {
+    background: linear-gradient(135deg, #1A1A1A, #A50034) !important;
+    color: #fff !important;
+    font-weight: 700;
+    padding: .7rem 1rem !important;
+  }
+
+  td { padding: .6rem 1rem !important; }
+
+  tr:nth-child(even) td { background: #FFF5F7; }
+}
+
+// ── 인용구 ───────────────────────────────────
+blockquote {
+  border-left: 4px solid var(--lg-red) !important;
+  background: linear-gradient(90deg, #FFF1F3, #fff) !important;
+  border-radius: 0 12px 12px 0 !important;
+  padding: 1rem 1.5rem !important;
+  color: #7A0026 !important;
+  font-style: normal !important;
+  font-weight: 500;
+}
+
+// ── 헤딩 ─────────────────────────────────────
+.article-content {
+  h2 {
+    border-bottom: 2px solid #E5E7EB;
+    padding-bottom: .4rem;
+    margin-top: 2.4rem;
+  }
+
+  h3 { color: var(--lg-red); }
+
+  a {
+    color: var(--lg-red);
+    text-underline-offset: 3px;
+    &:hover { color: var(--lg-accent); }
+  }
+}
+
+// ── 페이지네이션 ──────────────────────────────
+.pagination .page-link {
+  border-radius: 8px !important;
+  border: 1px solid #E5E7EB !important;
+  transition: all .15s;
+
+  &:hover {
+    background: var(--lg-red) !important;
+    color: #fff !important;
+    border-color: var(--lg-red) !important;
+  }
+}
+
+// ── 다크모드 ─────────────────────────────────
+[data-scheme="dark"] {
+  .widget--toc {
+    background: rgba(165,0,52,.08);
+    border-color: rgba(165,0,52,.3);
+    a { color: #FECDD3; }
+    a:hover { color: var(--lg-accent); }
+  }
+
+  code:not(pre code) {
+    background: rgba(165,0,52,.15) !important;
+    color: #FECDD3 !important;
+  }
+
+  .article-tags a,
+  .widget--tag-cloud a {
+    background: rgba(165,0,52,.15) !important;
+    border-color: rgba(165,0,52,.3) !important;
+    color: #FECDD3 !important;
+  }
+
+  blockquote {
+    background: linear-gradient(90deg, rgba(165,0,52,.1), transparent) !important;
+    color: #FECDD3 !important;
+  }
+
+  .article-content table tr:nth-child(even) td {
+    background: rgba(165,0,52,.06);
+  }
+
+  .article-list--compact article,
+  .article-list--tile article {
+    border-color: #2D2D2D;
+  }
+}

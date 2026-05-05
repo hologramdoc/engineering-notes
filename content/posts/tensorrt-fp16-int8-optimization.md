@@ -4,12 +4,9 @@ date: 2026-04-20
 tags: ["TensorRT", "딥러닝", "추론최적화", "Edge AI", "YOLOv8", "FP16", "INT8"]
 categories: ["AI 추론 엔진"]
 description: "제조 현장 비전 검사 시스템에서 TensorRT FP16/INT8을 적용해 레이턴시를 3배 이상 줄인 과정. 부동소수점 이론부터 캘리브레이션 구현까지."
+image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1260&h=630&fit=crop&auto=format"
 showToc: true
 tocopen: true
-cover:
-  image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1260&h=630&fit=crop&auto=format"
-  alt: "GPU 칩 클로즈업 — TensorRT 추론 최적화"
-  relative: false
 ---
 
 ## 왜 TensorRT인가

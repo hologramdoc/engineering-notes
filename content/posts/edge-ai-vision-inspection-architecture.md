@@ -4,12 +4,9 @@ date: 2026-04-05
 tags: ["Edge AI", "비전검사", "시스템설계", "Jetson", "PLC", "MES", "SCADA", "GigE Vision"]
 categories: ["시스템 설계"]
 description: "자동차 생산 라인 비전 검사 AI 시스템의 4계층 아키텍처 전체. 산업용 카메라 이론, CUDA Stream 파이프라인, PLC 통신, MES 연동까지 실무 설계 노트."
+image: "https://images.unsplash.com/photo-1565043666747-69f6646db940?w=1260&h=630&fit=crop&auto=format"
 showToc: true
 tocopen: true
-cover:
-  image: "https://images.unsplash.com/photo-1565043666747-69f6646db940?w=1260&h=630&fit=crop&auto=format"
-  alt: "자동차 제조 공장 — 비전 검사 시스템"
-  relative: false
 ---
 
 ## 자동차 비전 검사의 특수성
