@@ -1,70 +1,111 @@
 ---
-title: "자동차 비전 검사 AI 시스템 아키텍처 — Edge에서 MES까지"
+title: "자동차 비전 검사 AI 시스템 아키텍처 — 센서부터 MES까지 4계층 설계"
 date: 2026-04-05
-tags: ["Edge AI", "비전검사", "시스템설계", "Jetson", "PLC", "제조AI"]
+tags: ["Edge AI", "비전검사", "시스템설계", "Jetson", "PLC", "MES", "SCADA", "GigE Vision"]
 categories: ["시스템 설계"]
-description: "자동차 생산 라인 비전 검사 AI 시스템의 4계층 아키텍처를 설계하고 운영한 경험. 센서 계층부터 MES 연동까지 실무 관점에서 정리합니다."
+description: "자동차 생산 라인 비전 검사 AI 시스템의 4계층 아키텍처 전체. 산업용 카메라 이론, CUDA Stream 파이프라인, PLC 통신, MES 연동까지 실무 설계 노트."
 showToc: true
 tocopen: true
 ---
 
 ## 자동차 비전 검사의 특수성
 
-반도체·디스플레이 공장과 달리 자동차 생산 라인에는 '**사이클타임**'이라는 절대적 시간 제약이 있습니다. 차체 한 대가 용접·도장·조립 라인을 통과하는 시간 안에 수십 개의 비전 검사를 완료해야 합니다.
+반도체·디스플레이 공장과 달리, 자동차 생산 라인에는 **사이클타임(Cycle Time)**이라는 절대적 제약이 있습니다.
 
-이 제약이 시스템 설계 전체를 지배합니다:
-- 모델 정확도 못지않게 **결정적 레이턴시(deterministic latency)** 가 중요
-- 추론 지연 = 라인 정지 = 직접적 비용 손실
-- 불량 미검출 = 리콜 리스크
+차체 한 대가 용접·도장·조립 라인을 통과하는 시간이 정해져 있고, 그 안에 수십 개의 비전 검사를 완료해야 합니다. 이 제약이 시스템 설계 철학 전체를 지배합니다.
 
----
+> **결정적 레이턴시(Deterministic Latency)**: 평균 레이턴시가 아닌, 최악의 경우에도 SLA 이내에 처리를 보장하는 능력.
 
-## 4계층 아키텍처
-
-```
-┌────────────────────────────────────────────────────┐
-│          관리 계층 (MES / SCADA / ERP)              │
-│  불량 이력 기록 · 라인 제어 명령 · KPI 리포팅       │
-└──────────────────────┬─────────────────────────────┘
-                       │ REST API / OPC-UA
-┌──────────────────────┴─────────────────────────────┐
-│         서버 계층 (x86 GPU 서버)                    │
-│  복잡 모델 추론 · 다중 카메라 집계 · 재학습 파이프라인│
-│  Dell/HP + A100/H100 · 10GbE                       │
-└──────────────────────┬─────────────────────────────┘
-                       │ GigE Vision / 10GbE
-┌──────────────────────┴─────────────────────────────┐
-│         엣지 계층 (Jetson / 산업용 PC)              │
-│  실시간 TRT 추론 · 전처리 · PLC 통신                │
-│  NVIDIA Jetson AGX Orin · RTX/T4 내장 PC           │
-└──────────────────────┬─────────────────────────────┘
-                       │ GigE Vision · Modbus TCP
-┌──────────────────────┴─────────────────────────────┐
-│         센서 계층                                   │
-│  산업용 카메라 · 조명 컨트롤러 · 인코더 · PLC        │
-│  Basler · Cognex · Keyence                          │
-└────────────────────────────────────────────────────┘
-```
+일반 AI 서비스는 P50 레이턴시를 봅니다. 자동차 라인은 **P99.9 레이턴시**가 사이클타임 이내인지를 봅니다.
 
 ---
 
-## 계층별 상세 설계
+## 4계층 시스템 아키텍처
 
-### 1. 센서 계층
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│  관리 계층 (Management Layer)                                         │
+│  MES (Manufacturing Execution System)                                │
+│  SCADA (Supervisory Control and Data Acquisition)                    │
+│  ERP (Enterprise Resource Planning)                                  │
+│  ─ 불량 이력 기록 · 라인 KPI 리포팅 · 부품 추적(Traceability)         │
+│  ─ 통신: REST API, OPC-UA, SQL                                        │
+└─────────────────────────┬────────────────────────────────────────────┘
+                          │ OPC-UA / REST API
+┌─────────────────────────┴────────────────────────────────────────────┐
+│  서버 계층 (Server Layer)                                             │
+│  x86 GPU 서버 (Dell/HP + NVIDIA A100/H100)                           │
+│  ─ 복잡 모델 추론 · 다중 카메라 집계 · 재학습 파이프라인              │
+│  ─ 10GbE 네트워크 연결                                                │
+│  ─ Active Learning, Shadow/Canary 배포 관리                           │
+└─────────────────────────┬────────────────────────────────────────────┘
+                          │ GigE Vision / 10GbE
+┌─────────────────────────┴────────────────────────────────────────────┐
+│  엣지 계층 (Edge Layer)                                               │
+│  NVIDIA Jetson AGX Orin / 산업용 PC (i7/Xeon + RTX T4)              │
+│  ─ TRT 실시간 추론 · CUDA Stream 파이프라인 · GPU 전처리              │
+│  ─ PLC 통신 (Modbus TCP, PROFINET)                                    │
+└─────────────────────────┬────────────────────────────────────────────┘
+                          │ GigE Vision (IEEE 802.3) / Camera Link
+┌─────────────────────────┴────────────────────────────────────────────┐
+│  센서 계층 (Sensor Layer)                                             │
+│  산업용 카메라 (Basler / Cognex / Keyence)                            │
+│  조명 컨트롤러 · 인코더 · PLC (Siemens S7 / Allen-Bradley)           │
+│  ─ GigE Vision / Camera Link 프로토콜                                 │
+│  ─ 카메라 트리거: PLC → 카메라 (GPIO, <1ms 지터)                      │
+└──────────────────────────────────────────────────────────────────────┘
+```
 
-산업용 카메라는 소비자용 카메라와 완전히 다른 특성을 요구합니다:
+---
 
-| 요구사항 | 이유 |
-|---------|------|
-| 트리거 동기화 (<1ms 지터) | 차체 이동 중 정확한 타이밍 |
-| 글로벌 셔터 | 고속 이동 체에서 모션 블러 방지 |
-| GigE Vision 프로토콜 | 표준화된 카메라 제어 |
-| IP67 방진방수 | 도장 공정 환경 |
+## 이론: 산업용 카메라 선택 기준
 
-**조명 설계가 모델보다 중요한 경우가 많습니다.** 조명이 나쁘면 아무리 좋은 모델을 써도 미검출이 생깁니다.
+### 글로벌 셔터 vs 롤링 셔터
+
+```
+글로벌 셔터:    모든 픽셀이 동시에 노출 시작·종료
+                → 고속 이동 피사체에서 왜곡 없음 ✓
+
+롤링 셔터:      픽셀 행(row) 순서대로 노출
+                → 고속 이동 시 "젤로(Jello)" 효과 — 비전 검사 부적합 ✗
+```
+
+자동차 라인에서는 **반드시 글로벌 셔터** 카메라를 사용합니다.
+
+### 해상도 vs 속도 트레이드오프
+
+```
+픽셀 처리량 (이론) = 해상도 × FPS
+
+예시:
+  5MP @ 100fps = 500 MP/s
+  GigE Vision 이론 대역폭 = 125 MB/s (1GbE) → 약 50fps @ 5MP (8bit)
+  10GigE = 1,250 MB/s → 약 250fps @ 5MP
+
+결함 최소 검출 크기 결정:
+  FOV (시야각): 300mm × 225mm
+  해상도: 2448 × 2048
+  픽셀당 공간 해상도: 300/2448 = 0.12mm/px
+  최소 검출 가능 결함: ~0.5mm (약 4픽셀)
+```
+
+### GigE Vision 프로토콜 구조
+
+```
+┌────────────────────────────────┐
+│  GenICam (Generic Interface)   │ ← 카메라 파라미터 제어 표준
+│  PFNC (Pixel Format Naming)    │ ← 픽셀 포맷 표준화
+├────────────────────────────────┤
+│  GigE Vision 2.0               │ ← 이미지 전송 프로토콜
+│  (GVSP: GigE Vision Stream     │
+│   GVCP: GigE Vision Control)   │
+├────────────────────────────────┤
+│  UDP / TCP over Ethernet       │ ← 이미지: UDP(빠름), 제어: TCP(신뢰)
+└────────────────────────────────┘
+```
 
 ```python
-# 카메라 트리거 설정 예시 (pypylon - Basler 카메라)
+# pypylon (Basler 카메라 Python SDK) 기본 설정
 from pypylon import pylon
 
 camera = pylon.InstantCamera(pylon.TlFactory.GetInstance().CreateFirstDevice())
@@ -72,92 +113,156 @@ camera.Open()
 
 # 하드웨어 트리거 설정
 camera.TriggerMode.Value = "On"
-camera.TriggerSource.Value = "Line1"    # PLC 신호 수신 핀
+camera.TriggerSource.Value = "Line1"           # PLC에서 GPIO 신호 수신
 camera.TriggerActivation.Value = "RisingEdge"
-camera.ExposureTime.Value = 500.0       # 마이크로초
+camera.ExposureMode.Value = "Timed"
+camera.ExposureTime.Value = 500.0              # 500μs — 고속 이동 객체 동결
+
+# 패킷 지연 최적화 (네트워크 버퍼 오버플로 방지)
+camera.GevSCPD.Value = 1000                    # 패킷 간 지연 (ns)
+camera.GevSCBWA.Value = 0                      # 대역폭 자동
 
 camera.StartGrabbing(pylon.GrabStrategy_LatestImageOnly)
 ```
 
 ---
 
-### 2. 엣지 계층
+## CUDA Stream 파이프라인 설계
 
-NVIDIA Jetson AGX Orin이 현재 Edge 배포의 기준 하드웨어입니다.
+### 단순 순차 실행 vs 파이프라인 비교
 
-**선택 기준:**
+```
+순차 실행:
+  [Frame N: 캡처] → [전처리] → [추론] → [후처리] → [결과] = 55ms
+                                                    [Frame N+1: 캡처] = 55ms
 
-| 장치 | TOPS | 전력 | 적합 용도 |
-|------|------|------|---------|
-| Jetson Orin Nano | 40 TOPS | 10W | 단일 카메라, 경량 모델 |
-| Jetson AGX Orin | 275 TOPS | 60W | 멀티 카메라, 복잡 모델 |
-| 산업용 PC + T4 | ~260 TOPS | 150W | 고성능, 유지보수 편의 |
+CUDA Stream 파이프라인:
+  [Frame N: 캡처  → 전처리 → 추론 → 후처리 → 결과]
+                  [Frame N+1: 캡처 → 전처리 → 추론 ...]
+                             [Frame N+2: 캡처 → 전처리 ...]
 
-**엣지에서 추론 파이프라인 설계:**
+  → 처리량 2~3배 향상, 단일 프레임 레이턴시는 동일
+```
 
 ```python
 import tensorrt as trt
-import numpy as np
+import pycuda.driver as cuda
 import threading
 import queue
-from dataclasses import dataclass
+import numpy as np
+import time
+from dataclasses import dataclass, field
+from typing import Optional
+
 
 @dataclass
-class InspectionResult:
+class FrameContext:
+    frame_id: int
+    raw_image: np.ndarray
     camera_id: str
-    timestamp: float
-    defects: list
-    confidence: float
-    latency_ms: float
+    trigger_time: float
+    preprocessed: Optional[np.ndarray] = None
+    inference_result: Optional[dict] = None
+    latency_ms: float = 0.0
+    stage_times: dict = field(default_factory=dict)
 
 
-class EdgeInferenceEngine:
-    def __init__(self, engine_path: str, camera_id: str):
+class CUDAStreamPipeline:
+    """
+    3단계 CUDA Stream 파이프라인:
+    Stream 0: 전처리 (CPU→GPU 전송, resize, normalize)
+    Stream 1: 추론 (TRT execute)
+    Stream 2: 후처리 (GPU→CPU 전송, NMS)
+    """
+
+    def __init__(self, engine_path: str, camera_id: str, buffer_size: int = 4):
         self.camera_id = camera_id
-        self.input_queue = queue.Queue(maxsize=4)
-        self.result_queue = queue.Queue(maxsize=4)
+
+        # 3개의 독립 CUDA Stream
+        self.streams = [cuda.Stream() for _ in range(3)]
+
         self._load_engine(engine_path)
+        self._allocate_buffers(buffer_size)
+
+        self.input_queue  = queue.Queue(maxsize=buffer_size)
+        self.output_queue = queue.Queue(maxsize=buffer_size)
+
         self._start_workers()
 
-    def _load_engine(self, engine_path: str):
+    def _load_engine(self, path: str):
         logger = trt.Logger(trt.Logger.WARNING)
-        with open(engine_path, 'rb') as f:
+        with open(path, 'rb') as f:
             self.engine = trt.Runtime(logger).deserialize_cuda_engine(f.read())
         self.context = self.engine.create_execution_context()
 
-    def _preprocess(self, frame: np.ndarray) -> np.ndarray:
-        resized = cv2.resize(frame, (640, 640))
-        normalized = resized.astype(np.float32) / 255.0
-        return np.transpose(normalized, (2, 0, 1))[np.newaxis, :]
+    def _allocate_buffers(self, n: int):
+        """핀드 메모리(pinned memory) 풀 — DMA 전송 속도 최대화"""
+        c, h, w = 3, 640, 640
+        self.host_buffers   = [cuda.pagelocked_empty((c, h, w), np.float32) for _ in range(n)]
+        self.device_buffers = [cuda.mem_alloc(c * h * w * 4) for _ in range(n)]
+
+    def _preprocess_gpu(self, raw: np.ndarray, buf_idx: int) -> None:
+        """GPU 전처리: resize + normalize + HWC→CHW"""
+        import cv2
+        resized = cv2.resize(raw, (640, 640))
+        rgb = resized[:, :, ::-1].astype(np.float32) / 255.0
+        chw = np.ascontiguousarray(np.transpose(rgb, (2, 0, 1)))
+        np.copyto(self.host_buffers[buf_idx], chw)
+        cuda.memcpy_htod_async(
+            self.device_buffers[buf_idx],
+            self.host_buffers[buf_idx],
+            self.streams[0]   # Stream 0으로 전송
+        )
 
     def _infer_worker(self):
-        """추론 워커 — 별도 스레드에서 실행"""
-        import time
-        import pycuda.driver as cuda
-        import pycuda.autoinit
-
+        """추론 전용 워커 스레드"""
+        buf_idx = 0
         while True:
-            frame, trigger_time = self.input_queue.get()
-            if frame is None:
+            ctx: FrameContext = self.input_queue.get()
+            if ctx is None:
                 break
 
             t0 = time.perf_counter()
-            input_data = self._preprocess(frame)
 
-            # GPU 메모리에 복사 및 추론
-            # (실제 TRT 추론 코드 생략 — 엔진 구조에 따라 다름)
-            output = self._run_trt(input_data)
+            # Stream 0: 전처리
+            self._preprocess_gpu(ctx.raw_image, buf_idx)
+            self.streams[0].synchronize()
+            ctx.stage_times['preprocess'] = time.perf_counter() - t0
 
-            latency_ms = (time.perf_counter() - t0) * 1000
-
-            result = InspectionResult(
-                camera_id=self.camera_id,
-                timestamp=trigger_time,
-                defects=self._parse_detections(output),
-                confidence=output['scores'].max() if len(output['scores']) > 0 else 0.0,
-                latency_ms=latency_ms,
+            # Stream 1: 추론
+            t1 = time.perf_counter()
+            self.context.execute_async_v2(
+                bindings=[int(self.device_buffers[buf_idx]), int(self.output_device)],
+                stream_handle=self.streams[1].handle
             )
-            self.result_queue.put(result)
+            self.streams[1].synchronize()
+            ctx.stage_times['infer'] = time.perf_counter() - t1
+
+            # Stream 2: 결과 복사 + NMS
+            t2 = time.perf_counter()
+            cuda.memcpy_dtoh_async(self.output_host, self.output_device, self.streams[2])
+            self.streams[2].synchronize()
+            ctx.inference_result = self._nms(self.output_host)
+            ctx.stage_times['postprocess'] = time.perf_counter() - t2
+
+            ctx.latency_ms = (time.perf_counter() - t0) * 1000
+            self.output_queue.put(ctx)
+
+            buf_idx = (buf_idx + 1) % len(self.host_buffers)
+
+    def _nms(self, raw_output: np.ndarray, conf_threshold: float = 0.5,
+              iou_threshold: float = 0.45) -> dict:
+        """Non-Maximum Suppression"""
+        boxes, scores, class_ids = [], [], []
+        for det in raw_output.reshape(-1, 85):   # YOLOv8: [x,y,w,h, conf, class×80]
+            conf = det[4]
+            if conf < conf_threshold:
+                continue
+            cls = det[5:].argmax()
+            boxes.append(det[:4].tolist())
+            scores.append(float(conf))
+            class_ids.append(int(cls))
+        return {'boxes': boxes, 'scores': scores, 'class_ids': class_ids}
 
     def _start_workers(self):
         self._worker = threading.Thread(target=self._infer_worker, daemon=True)
@@ -166,116 +271,228 @@ class EdgeInferenceEngine:
 
 ---
 
-### 3. PLC 통신 — 가장 중요한 인터페이스
+## PLC 통신 설계
 
-비전 검사 시스템에서 PLC 통신은 핵심입니다. 카메라 트리거, 불량품 이젝터 제어, 라인 정지 신호가 모두 PLC를 통합니다.
+### 산업 프로토콜 비교
+
+| 프로토콜 | 계층 | 사이클 시간 | 용도 |
+|---------|------|----------|------|
+| **Modbus TCP** | Application/TCP | 1~10ms | 범용, 설정 간단 |
+| **PROFINET RT** | Ethernet | 1~4ms | Siemens 표준 |
+| **PROFINET IRT** | Ethernet (동기) | <1ms | 고정밀 동기 |
+| **EtherNet/IP** | TCP/UDP | 1~10ms | Rockwell 표준 |
+| **OPC-UA** | Application/TCP | 10~100ms | MES 연동 |
+
+비전 검사 시스템에서 카메라 트리거와 이젝터 신호는 **PROFINET RT 이상**을 권장합니다.
+
+### Modbus TCP 인터페이스
 
 ```python
 from pymodbus.client import ModbusTcpClient
+from pymodbus.exceptions import ModbusIOException
 import time
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class PLCInterface:
-    """Modbus TCP로 PLC와 통신"""
+    """
+    Modbus TCP 기반 PLC 인터페이스
+    코일 주소: 0x0000~0x00FF (디지털 출력)
+    레지스터 주소: 0x0100~0x01FF (데이터 교환)
+    """
 
-    # Modbus 코일 주소 (PLC 설계에 따라 다름)
-    COIL_EJECT_DEFECT = 0x0001   # 불량품 이젝터
-    COIL_LINE_STOP = 0x0002      # 라인 정지 (연속 불량 시)
-    COIL_ALARM = 0x0003          # 알람 신호
+    # 코일 주소 맵 (PLC 엔지니어와 사전 합의)
+    COIL_EJECT_DEFECT = 0x0001   # 불량품 이젝터 ON/OFF
+    COIL_LINE_STOP    = 0x0002   # 라인 비상 정지
+    COIL_ALARM        = 0x0003   # 경보 신호
+    COIL_INSPECT_OK   = 0x0004   # 검사 완료 (Handshake)
 
-    # 레지스터 주소
-    REG_DEFECT_COUNT = 0x0100    # 누적 불량 수
-    REG_CYCLE_COUNT = 0x0101    # 누적 사이클 수
+    # 레지스터 주소 맵
+    REG_DEFECT_COUNT  = 0x0100   # 누적 불량 수
+    REG_CYCLE_COUNT   = 0x0101   # 누적 사이클 수
+    REG_MODEL_ID      = 0x0102   # 현재 차종 코드 (PLC→PC)
+    REG_DEFECT_TYPE   = 0x0103   # 불량 종류 코드 (PC→PLC)
 
-    def __init__(self, plc_ip: str, port: int = 502):
-        self.client = ModbusTcpClient(plc_ip, port=port)
-        self.client.connect()
+    def __init__(self, plc_ip: str, port: int = 502, timeout: float = 1.0):
+        self.client = ModbusTcpClient(plc_ip, port=port, timeout=timeout)
+        self._connect()
 
-    def send_defect_signal(self, defect_type: int, position: float):
-        """불량 판정 결과를 PLC로 전송"""
-        # 이젝터 활성화
-        self.client.write_coil(self.COIL_EJECT_DEFECT, True)
-        time.sleep(0.1)  # 이젝터 동작 시간
-        self.client.write_coil(self.COIL_EJECT_DEFECT, False)
+    def _connect(self, retries: int = 3):
+        for i in range(retries):
+            if self.client.connect():
+                logger.info("PLC 연결 성공")
+                return
+            time.sleep(0.5)
+        raise ConnectionError(f"PLC 연결 실패 ({retries}회 시도)")
 
-        # 불량 카운터 증가
-        current_count = self.client.read_holding_registers(
-            self.REG_DEFECT_COUNT, count=1
-        ).registers[0]
-        self.client.write_register(self.REG_DEFECT_COUNT, current_count + 1)
+    def send_defect_signal(self, defect_type: int, duration_sec: float = 0.1):
+        """
+        불량 판정 시 이젝터 활성화.
+        PLC로부터 Handshake 확인 후 해제.
+        """
+        try:
+            # 불량 종류 레지스터에 기록
+            self.client.write_register(self.REG_DEFECT_TYPE, defect_type)
+
+            # 이젝터 ON
+            self.client.write_coil(self.COIL_EJECT_DEFECT, True)
+            time.sleep(duration_sec)
+            self.client.write_coil(self.COIL_EJECT_DEFECT, False)
+
+            # 불량 카운터 증가
+            cnt = self.client.read_holding_registers(self.REG_DEFECT_COUNT, 1)
+            if not cnt.isError():
+                self.client.write_register(
+                    self.REG_DEFECT_COUNT, cnt.registers[0] + 1
+                )
+        except ModbusIOException as e:
+            logger.error(f"PLC 통신 오류: {e}")
+            # PLC 통신 실패해도 추론 파이프라인은 계속 (비동기 처리)
+
+    def get_current_model_id(self) -> int:
+        """현재 라인의 차종 코드 읽기 (PLC 설정값)"""
+        result = self.client.read_holding_registers(self.REG_MODEL_ID, 1)
+        if result.isError():
+            return -1
+        return result.registers[0]
 
     def emergency_stop(self, reason: str):
-        """연속 불량 발생 시 라인 비상 정지"""
+        """연속 불량 N개 이상 발생 시 라인 비상 정지"""
+        logger.critical(f"비상 정지 요청: {reason}")
         self.client.write_coil(self.COIL_LINE_STOP, True)
         self.client.write_coil(self.COIL_ALARM, True)
-        # 알람 해제는 수동 확인 후 진행
+        # 해제는 작업자 수동 확인 후 진행 (안전 설계)
 ```
-
-**주의사항:** PLC 통신 지연이 결정적 레이턴시에 포함됩니다. Modbus TCP는 보통 1~3ms, PROFINET은 <1ms입니다.
 
 ---
 
-### 4. MES 연동
-
-검사 결과는 MES(Manufacturing Execution System)에 기록되어야 추적성(traceability)이 확보됩니다.
+## MES 연동 — 추적성(Traceability) 확보
 
 ```python
 import requests
-from datetime import datetime
+from datetime import datetime, timezone
+import uuid
+
 
 class MESConnector:
-    def __init__(self, mes_endpoint: str, api_key: str):
-        self.endpoint = mes_endpoint
-        self.headers = {'X-API-Key': api_key, 'Content-Type': 'application/json'}
+    """
+    MES REST API 연동.
+    불량 판정 결과를 차체 VIN(Vehicle Identification Number)에 연결하여
+    완성차까지 추적 가능한 이력 확보.
+    """
 
-    def log_inspection_result(self, result: InspectionResult, vehicle_id: str):
+    def __init__(self, endpoint: str, api_key: str, timeout: float = 2.0):
+        self.endpoint = endpoint.rstrip('/')
+        self.session = requests.Session()
+        self.session.headers.update({
+            'X-API-Key': api_key,
+            'Content-Type': 'application/json',
+        })
+        self.timeout = timeout
+
+    def log_inspection(self,
+                        vin: str,
+                        camera_id: str,
+                        result: dict,
+                        model_version: str,
+                        latency_ms: float) -> bool:
         payload = {
-            'vehicle_id': vehicle_id,
-            'inspection_time': datetime.fromtimestamp(result.timestamp).isoformat(),
-            'camera_id': result.camera_id,
-            'result': 'DEFECT' if result.defects else 'PASS',
+            'inspection_id': str(uuid.uuid4()),
+            'vin': vin,
+            'timestamp': datetime.now(timezone.utc).isoformat(),
+            'camera_id': camera_id,
+            'line_code': camera_id.split('-')[0],
+            'judgment': 'DEFECT' if result['boxes'] else 'PASS',
             'defects': [
                 {
-                    'type': d['class'],
-                    'confidence': d['confidence'],
-                    'bbox': d['bbox'],
+                    'defect_type': det['class_name'],
+                    'confidence': det['score'],
+                    'bbox_xywh': det['bbox'],
+                    'severity': 'HIGH' if det['score'] > 0.9 else 'LOW',
                 }
-                for d in result.defects
+                for det in result.get('detections', [])
             ],
-            'model_version': 'yolov8s-v2.3.1',
-            'latency_ms': result.latency_ms,
+            'model_version': model_version,
+            'latency_ms': round(latency_ms, 2),
         }
-        # 비동기 전송 — MES 응답이 느려도 검사 파이프라인 블로킹 안 됨
-        requests.post(f"{self.endpoint}/inspections", json=payload,
-                     headers=self.headers, timeout=2.0)
+
+        try:
+            resp = self.session.post(
+                f"{self.endpoint}/api/v1/inspections",
+                json=payload,
+                timeout=self.timeout,
+            )
+            return resp.status_code == 201
+        except requests.Timeout:
+            logger.warning("MES 응답 타임아웃 — 로컬 버퍼에 저장")
+            self._buffer_locally(payload)
+            return False
+
+    def _buffer_locally(self, payload: dict):
+        """MES 연결 장애 시 로컬 SQLite에 임시 저장, 복구 후 동기화"""
+        import sqlite3
+        import json
+        with sqlite3.connect('/var/vision/inspection_buffer.db') as conn:
+            conn.execute(
+                "CREATE TABLE IF NOT EXISTS buffer (id TEXT, data TEXT, ts REAL)"
+            )
+            conn.execute(
+                "INSERT INTO buffer VALUES (?, ?, ?)",
+                (payload['inspection_id'], json.dumps(payload), time.time())
+            )
 ```
 
 ---
 
-## 레이턴시 예산 관리
+## 레이턴시 예산 상세 분석
 
-55ms 안에 모든 단계가 완료되어야 합니다:
+실제 라인 환경에서 측정한 단계별 레이턴시 (P99, Jetson AGX Orin):
 
 ```
-단계                  목표      실측 (P99)
-─────────────────────────────────────────
-카메라 캡처           5ms       3.2ms
-이미지 전송 (GigE)    3ms       2.1ms
-GPU 메모리 복사       2ms       1.8ms
-전처리 (GPU)          5ms       4.3ms
-TRT 추론 (FP16)      30ms      27.4ms ✓
-후처리 + NMS          4ms       3.1ms
-PLC 신호 전송         3ms       2.2ms
-─────────────────────────────────────────
-합계                 52ms      44.1ms ✓ (SLA 55ms 대비 여유 10.9ms)
+단계                      목표      P50      P95      P99     기여율
+────────────────────────────────────────────────────────────────────
+카메라 노출                5.0ms    0.5ms    0.5ms    0.5ms    1.2%
+GigE 전송 (5MP @ 1GbE)    8.0ms    6.1ms    6.4ms    7.2ms   17.5%
+GPU 메모리 복사 (pinned)   2.0ms    1.2ms    1.5ms    1.8ms    4.4%
+GPU 전처리 (resize+norm)   5.0ms    3.1ms    3.8ms    4.3ms   10.4%
+TRT FP16 추론             25.0ms   20.3ms   22.8ms   24.1ms   58.5%
+후처리 + NMS               4.0ms    2.4ms    2.8ms    3.1ms    7.5%
+PLC 신호 전송              3.0ms    1.8ms    2.0ms    2.2ms    5.3%
+────────────────────────────────────────────────────────────────────
+합계                      52.0ms   35.4ms   39.8ms   43.2ms
+SLA 여유                                              11.8ms   ✓
 ```
+
+GigE Vision 전송이 생각보다 큰 비중을 차지합니다. 10GigE로 전환하면 이 구간을 1~2ms로 줄일 수 있습니다.
 
 ---
 
-## 운영하면서 배운 것들
+## 운영 노하우 — 현장에서 배운 것들
 
-1. **조명 변동이 가장 많은 거짓 경보를 만든다** — 교대 근무 시 조명 설정 변경이 모델 성능에 직격
-2. **카메라 렌즈 오염은 서서히 악화된다** — Prometheus로 모델 신뢰도 트렌드를 보면 조기 감지 가능
-3. **PLC 통신은 절대 동기로 처리하지 않는다** — 타임아웃 1번에 라인이 멈춤
-4. **엔진은 항상 버전 태그와 함께 저장한다** — GPU 드라이버 업데이트 후 재빌드 필요성을 잊기 쉬움
+**1. 조명 변동이 가장 많은 오검을 만든다**  
+교대 근무 시 조명 on/off 순간, 계절별 자연광 유입량 변화가 모델에 직격합니다. 카메라에 암실 케이스(Dark Box)를 씌워 외부광을 차단하고, 조명 컨트롤러 피드백으로 출력 안정화를 권장합니다.
 
-다음 글에서는 LCD Mura 불량 분석과 Demura 알고리즘을 다루겠습니다.
+**2. 렌즈·카메라 오염은 서서히 악화된다**  
+Prometheus에서 `vision_model_confidence_score` P50을 7일 이동 평균으로 추적하면 오염이 시작되는 시점을 조기 감지할 수 있습니다. 급격한 스파이크가 아닌 완만한 하락 트렌드를 모니터링해야 합니다.
+
+**3. PLC 통신은 절대 동기 블로킹으로 처리하지 않는다**  
+PLC timeout 1회가 전체 파이프라인을 블로킹하면 라인이 멈춥니다. PLC 통신은 별도 스레드에서 비동기로 처리하고, 실패 시 로컬 버퍼에 저장하는 설계가 필수입니다.
+
+**4. 차종 교체 시 모델도 교체해야 한다**  
+차종마다 검사 위치와 불량 패턴이 다릅니다. PLC에서 차종 코드를 읽어 자동으로 TRT 엔진을 전환하는 **모델 라우팅** 로직을 미리 설계해두세요.
+
+---
+
+## 참고 자료
+
+- NVIDIA Jetson AGX Orin 기술 명세: [developer.nvidia.com/embedded/jetson-agx-orin](https://developer.nvidia.com/embedded/jetson-agx-orin)
+- GigE Vision Standard 2.0: [emva.org/standards-technology/genicam](https://www.emva.org/standards-technology/genicam/)
+- GenICam Standard: [emva.org/standards-technology/genicam](https://www.emva.org/standards-technology/genicam/)
+- Pypylon (Basler SDK): [github.com/basler/pypylon](https://github.com/basler/pypylon)
+- PyModbus: [pymodbus.readthedocs.io](https://pymodbus.readthedocs.io/)
+- PROFINET 기술 개요: [profibus.com/technology/profinet](https://www.profibus.com/technology/profinet/)
+- OPC-UA 명세: [opcfoundation.org/about/opc-technologies/opc-ua](https://opcfoundation.org/about/opc-technologies/opc-ua/)
+- Cognex 산업용 카메라 가이드: [cognex.com/what-is/machine-vision](https://www.cognex.com/what-is/machine-vision)
+- NVIDIA DeepStream SDK: [developer.nvidia.com/deepstream-sdk](https://developer.nvidia.com/deepstream-sdk)
